@@ -1,5 +1,9 @@
 package me.cortex.voxy.common.world.service;
 
+import java.util.concurrent.ConcurrentLinkedDeque;
+
+import org.jetbrains.annotations.NotNull;
+
 import me.cortex.voxy.common.Logger;
 import me.cortex.voxy.common.thread.Service;
 import me.cortex.voxy.common.thread.ServiceManager;
@@ -17,9 +21,6 @@ import net.minecraft.world.level.chunk.DataLayer;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.lighting.LayerLightSectionStorage;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class VoxelIngestService {
     private static final ThreadLocal<VoxelizedSection> SECTION_CACHE = ThreadLocal.withInitial(VoxelizedSection::createEmpty);

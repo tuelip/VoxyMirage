@@ -1,10 +1,11 @@
 package me.cortex.voxy.common.world;
 
 import me.cortex.voxy.common.voxelization.VoxelizedSection;
+import static me.cortex.voxy.common.world.WorldEngine.MAX_LOD_LAYER;
+import static me.cortex.voxy.common.world.WorldEngine.UPDATE_TYPE_BLOCK_BIT;
+import static me.cortex.voxy.common.world.WorldEngine.UPDATE_TYPE_CHILD_EXISTENCE_BIT;
 import me.cortex.voxy.common.world.other.Mapper;
 import me.cortex.voxy.commonImpl.VoxyCommon;
-
-import static me.cortex.voxy.common.world.WorldEngine.*;
 
 public class WorldUpdater {
     //Executes an update to the world and automatically updates all the parent mip layers up to level 4 (e.g. where 1 chunk section is 1 block big)
@@ -19,6 +20,9 @@ public class WorldUpdater {
         }
 
         if (!into.isLive) throw new IllegalStateException("World is not live");
+        if (VoxySectionExclusion.isMinecraftSectionExcluded(section.x, section.y, section.z)) {
+            return;
+        }
         boolean shouldCheckEmptiness = false;
         WorldSection previousSection = null;
         for (int lvl = 0; lvl <= MAX_LOD_LAYER; lvl++) {

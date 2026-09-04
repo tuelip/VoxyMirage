@@ -1,5 +1,9 @@
 package me.cortex.voxy.common.config.section;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.function.LongConsumer;
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.cortex.voxy.common.Logger;
 import me.cortex.voxy.common.config.ConfigBuildCtx;
@@ -7,12 +11,9 @@ import me.cortex.voxy.common.config.storage.StorageBackend;
 import me.cortex.voxy.common.config.storage.StorageConfig;
 import me.cortex.voxy.common.util.ThreadLocalMemoryBuffer;
 import me.cortex.voxy.common.world.SaveLoadSystem3;
+import me.cortex.voxy.common.world.VoxySectionExclusion;
 import me.cortex.voxy.common.world.WorldSection;
 import me.cortex.voxy.common.world.other.Mapper;
-
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.function.LongConsumer;
 
 public class SectionSerializationStorage extends SectionStorage {
     public static final int BIGGEST_SERIALIZED_SECTION_SIZE = 32 * 32 * 32 * 8 * 2 + 8;
@@ -25,6 +26,11 @@ public class SectionSerializationStorage extends SectionStorage {
     private static final ThreadLocalMemoryBuffer MEMORY_CACHE = new ThreadLocalMemoryBuffer(BIGGEST_SERIALIZED_SECTION_SIZE + 1024);
 
     public int loadSection(WorldSection into) {
+        if (into.lvl == 0 && VoxySectionExclusion.isMinecraftSectionExcluded(into.x, into.y, into.z)) {
+            // TODO: could fill with stone
+            Arrays.fill(into._unsafeGetRawDataArray(), Mapper.AIR);
+            return 1;
+        }
         var data = this.backend.getSectionData(into.key, MEMORY_CACHE.get().createUntrackedUnfreeableReference());
         if (data != null) {
             if (!SaveLoadSystem3.deserialize(into, data)) {
@@ -34,6 +40,8 @@ public class SectionSerializationStorage extends SectionStorage {
                 Logger.error("Section " + into.lvl + ", " + into.x + ", " + into.y + ", " + into.z + " was unable to load, removing");
                 return -1;
             } else {
+                // TODO: Not sure whether this is required
+                VoxySectionExclusion.carveExcludedVoxels(into);
                 return 0;
             }
         } else {
